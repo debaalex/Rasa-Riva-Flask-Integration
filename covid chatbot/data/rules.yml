@@ -1,0 +1,30 @@
+version: "3.0"
+
+rules:
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - or:
+    - intent: goodbye
+    - intent: thanks
+  - action: utter_goodbye
+
+- rule: Fallback
+  steps:
+  - intent: nlu_fallback
+  - action: utter_default
+
+- rule: Chitchat
+  steps:
+  - intent: chitchat
+  - action: utter_chitchat
+
+- rule: happy path
+  steps:
+  - intent: mood_great
+  - action: utter_happy
+
+- rule: out-of-scope
+  steps:
+  - intent: out_of
+  - action: utter_out_of_scope

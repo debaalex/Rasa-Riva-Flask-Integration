@@ -1,0 +1,108 @@
+version: "3.0"
+
+stories:
+- story: beginning
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - checkpoint: check_start
+
+
+- story: sad path 1
+  steps:
+  - checkpoint: check_start
+  - intent: mood_unhappy
+  - action: utter_cheer_up
+  - action: utter_did_that_help
+  - intent: affirm
+  - action: utter_happy
+  - intent: thanks
+  - action: utter_goodbye
+
+- story: sad path 2
+  steps:
+  - checkpoint: check_start
+  - intent: mood_unhappy
+  - action: utter_cheer_up
+  - action: utter_did_that_help
+  - intent: deny
+  - action: utter_apologies
+  - intent: thanks
+  - action: utter_goodbye
+
+- story: ask regional covid situation
+  steps:
+  - checkpoint: check_start
+  - intent: ask_covid_regioni
+    entities:
+      - regione: Calabria
+  - action: utter_ask_covid_parameter
+  - slot_was_set:
+      - regione: Calabria
+  - intent: choose_parameter
+    entities:
+    - parameter: actual positive cases
+  - action: action_info_covid_regioni
+  - intent: thanks
+  - action: utter_goodbye
+
+
+- story: ask national covid situation
+  steps:
+  - checkpoint: check_start
+  - intent: ask_covid_italy
+  - action: utter_ask_covid_parameter
+  - intent: choose_parameter
+    entities:
+    - parameter: Hospitalized with symptoms
+  - action: action_info_covid_ita
+  - intent: thanks
+  - action: utter_goodbye
+
+
+- story: interactive_story_1
+  steps:
+  - intent: ask_covid_regioni
+    entities:
+    - regione: Veneto
+  - action: utter_ask_covid_parameter
+  - slot_was_set:
+      - regione: Veneto
+  - intent: choose_parameter
+    entities:
+    - parameter: Intensive Care Unit
+  - action: action_info_covid_regioni
+  - intent: thanks
+  - action: utter_goodbye
+
+- story: interactive_story_2
+  steps:
+  - intent: ask_covid_italy
+  - action: utter_ask_covid_parameter
+  - intent: choose_parameter
+    entities:
+    - parameter: General situation
+  - action: action_info_covid_ita
+  - intent: thanks
+  - action: utter_goodbye
+
+- story: interactive_story_1
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: chitchat
+  - action: utter_chitchat
+  - intent: ask_covid_regioni
+  - action: action_default_ask_rephrase
+  - intent: ask_covid_regioni
+    entities:
+    - regione: Abruzzo
+  - slot_was_set:
+    - regione: Abruzzo
+  - action: utter_ask_covid_parameter
+  - intent: choose_parameter
+    entities:
+    - parameter: General situation
+  - action: action_info_covid_regioni
+  - intent: thanks
+  - action: utter_goodbye
