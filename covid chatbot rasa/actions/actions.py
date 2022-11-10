@@ -13,13 +13,13 @@ class ActionAskCovidRegion(Action):
 
         response = requests.get(
             "https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni-latest.json").json()
-        entity_par=tracker.latest_message["entities"]
-        check_slot = tracker.get_slot("regione")
+        entity_par=tracker.latest_message["entities"] #recupero delle entities contenute nell'ultimo messaggio
+        check_slot = tracker.get_slot("regione") #recupero dello slot
         regione = ""
         parameter = ""
         print("last message x par:", entity_par, "\n")
         print(check_slot)
-        # manca controllo su nome della regione ma in teoria dovrebbe essere fatto prima da rasa
+
         if check_slot is not None:
             regione=check_slot
         message = "please enter a correct italian region name"
@@ -27,10 +27,10 @@ class ActionAskCovidRegion(Action):
         for e in entity_par:
             if e['entity'] == "parameter":
                 parameter = e['value']
-                parameter= parameter.strip().title()
+                parameter= parameter.strip().title() #recupero parametro
 
 
-        for data in response:
+        for data in response: #costruzione del messaggio output
             if data["denominazione_regione"] == regione.title():
                 print(data)
                 if parameter == "Actual Positive Cases":
@@ -48,7 +48,7 @@ class ActionAskCovidRegion(Action):
                 else: print("it wasnt possible to provide datas, sorry")
 
         print(message)
-        dispatcher.utter_message( regione + ": \n" + message)
+        dispatcher.utter_message( regione + ": \n" + message) #presentazione del messaggio
 
         return []
 
