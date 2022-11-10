@@ -8,7 +8,7 @@ def connection(host, port, user, key):
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     print("connecting")
-    c.connect("jump.fbk.eu", port, "adebertolis", key)
+    c.connect('"jumphost"', port, '"username"', key)
     jumpbox_transport = c.get_transport()
     src_addr = ("jump.fbk.eu", 22)
     dest_addr = (host, 22)
@@ -17,7 +17,7 @@ def connection(host, port, user, key):
     target.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     target.connect(host, port, user, key, sock=jumpbox_channel)
     print("connected")
-    stdin, stdout, stderr = target.exec_command("cd matasso/riva ; ls; rm rec.wav; rm resp.txt")
+    stdin, stdout, stderr = target.exec_command('"command"')
     print(stdout.readlines())
     stdin.close()
     stderr.close()
@@ -26,8 +26,7 @@ def connection(host, port, user, key):
 
 def SetDocker(ssh):
     # enter the docker container
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva/riva_quickstart_v1.10.0-beta ;"
-                                             "bash riva_start.sh ; bash riva_start_client.sh ; cd")
+    stdin, stdout, stderr = ssh.exec_command('"command"')
     # docker run riva-client ( alternative command)
     print(stdout.readlines())
     print("docker up")
@@ -53,7 +52,7 @@ def putFile(putLocalPath, putRemotePath, ssh):
     else:
         raise IOError('Could not find localFile %s !!' % putLocalPath)
     print("file transferred")
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva ; ls")
+    stdin, stdout, stderr = ssh.exec_command('"command"')
     print(stdout.readlines())
     stdin.close()
     stderr.close()
@@ -64,7 +63,7 @@ def getFile(getRemotePath, getLocalPath, ssh, rem):
     filepass = ssh.open_sftp()
     filepass.get(getRemotePath, getLocalPath, callback=None)
     filepass.close()
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva ; ls; rm {}; rm resp.txt;".format(rem))
+    stdin, stdout, stderr = ssh.exec_command('"command"'.format(rem))
     print(stdout.readlines())
     stdin.close()
     stderr.close()
@@ -87,7 +86,7 @@ def execDockCom(ssh, command, idDock):
 
 
     print(rtfx, runtime, latencies)
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva; ls")
+    stdin, stdout, stderr = ssh.exec_command('"command"')
     print(stdout.readlines())
     stdin.close()
     stderr.close()
@@ -112,14 +111,14 @@ def runTranscript(path):
     start = time.perf_counter()
     basename = os.path.basename(path)
     print(basename)
-    putremoteFile = '/raid/home/stek/matasso/riva/{}'.format(basename)
-    getRemote = '/raid/home/stek/matasso/riva/resp.txt'
-    getLocal = '/Users/alexdebertolis/Downloads/resp.txt'
+    putremoteFile = '"/path/"'.format(basename)
+    getRemote = '"/path/resp.txt"'
+    getLocal = '"/path/resp.txt"'
 
-    hostname = "digis-precision79203.fbk.eu"
-    username = "stek"
+    hostname = '"host"'
+    username = '"user"'
     port = 22
-    k = paramiko.RSAKey.from_private_key_file("/Users/alexdebertolis/chiavi-ssh/id_rsa")
+    k = paramiko.RSAKey.from_private_key_file("rsa keys")
 
     c = connection(hostname, port, username, k)
     SetDocker(c)
