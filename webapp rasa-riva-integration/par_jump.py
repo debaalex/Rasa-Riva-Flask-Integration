@@ -8,7 +8,7 @@ def connection(host, port, user, key):
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     print("connecting")
-    c.connect("jump.fbk.eu", port, "adebertolis", key)
+    c.connect('"jumphost"', port, '"username"', key)
     jumpbox_transport = c.get_transport()
     src_addr = ("jump.fbk.eu", 22)
     dest_addr = (host, 22)
@@ -17,7 +17,7 @@ def connection(host, port, user, key):
     target.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     target.connect(host, port, user, key, sock=jumpbox_channel)
     print("connected")
-    stdin, stdout, stderr = target.exec_command("cd matasso/riva ; ls; rm rec.wav; rm resp.txt")
+    stdin, stdout, stderr = target.exec_command('"command"')
     print(stdout.readlines())
     stdin.close()
     stderr.close()
@@ -26,8 +26,7 @@ def connection(host, port, user, key):
 
 def SetDocker(ssh):
     # enter the docker container
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva/riva_quickstart_v1.10.0-beta ;"
-                                             "bash riva_start.sh ; bash riva_start_client.sh ; cd")
+    stdin, stdout, stderr = ssh.exec_command('"command"')
     # docker run riva-client ( alternative command)
     print(stdout.readlines())
     print("docker up")
@@ -53,7 +52,7 @@ def putFile(putLocalPath, putRemotePath, ssh):
     else:
         raise IOError('Could not find localFile %s !!' % putLocalPath)
     print("file transferred")
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva ; ls")
+    stdin, stdout, stderr = ssh.exec_command('"command"')
     print(stdout.readlines())
     stdin.close()
     stderr.close()
@@ -64,7 +63,7 @@ def getFile(getRemotePath, getLocalPath, ssh, rem):
     filepass = ssh.open_sftp()
     filepass.get(getRemotePath, getLocalPath, callback=None)
     filepass.close()
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva ; ls; rm {}; rm resp.txt;".format(rem))
+    stdin, stdout, stderr = ssh.exec_command('"command"'.format(rem))
     print(stdout.readlines())
     stdin.close()
     stderr.close()
@@ -76,11 +75,22 @@ def execDockCom(ssh, command, idDock):
     string = "docker exec -it {A} {B}".format(A=idDock, B=command)
     print(string)
     stdin, stdout, stderr = ssh.exec_command(string, get_pty=True)
-    print(stdout.readlines())
-    stdin, stdout, stderr = ssh.exec_command("cd matasso/riva; ls")
+    output = stdout.readlines()
+    print("output =", output)
+    rtfx = output[len(output) - 2].split(":")[1]
+    audiolen=output[len(output) - 3].split(":")[1]
+    runtime = output[len(output) - 4].split(":")[1]
+    latencies = output[len(output) - 5].split('\t\t')[1]
+    rtfx = rtfx[0:len(rtfx)-2]
+    runtime=runtime[0:len(rtfx)-2]
+
+
+    print(rtfx, runtime, latencies)
+    stdin, stdout, stderr = ssh.exec_command('"command"')
     print(stdout.readlines())
     stdin.close()
     stderr.close()
+    return rtfx, runtime, latencies,audiolen
 
 
 def handleOut(file):
@@ -101,25 +111,26 @@ def runTranscript(path):
     start = time.perf_counter()
     basename = os.path.basename(path)
     print(basename)
-    putremoteFile = '/raid/home/stek/matasso/riva/{}'.format(basename)
-    getRemote = '/raid/home/stek/matasso/riva/resp.txt'
-    getLocal = '/Users/alexdebertolis/Downloads/resp.txt'
+    putremoteFile = '"/path/"'.format(basename)
+    getRemote = '"/path/resp.txt"'
+    getLocal = '"/path/resp.txt"'
 
-    hostname = "digis-precision79203.fbk.eu"
-    username = "stek"
+    hostname = '"host"'
+    username = '"user"'
     port = 22
-    k = paramiko.RSAKey.from_private_key_file("/Users/alexdebertolis/chiavi-ssh/id_rsa")
+    k = paramiko.RSAKey.from_private_key_file("rsa keys")
 
     c = connection(hostname, port, username, k)
     SetDocker(c)
     putFile(path, putremoteFile, c)
     idD = getDockerId(c)
     command = "riva_asr_client --audio_file /riva/{} --output_filename=/riva/resp.txt".format(basename)
-    execDockCom(c, command, idD)
+    exec = execDockCom(c, command, idD)
     getFile(getRemote, getLocal, c, basename)
     transcript = handleOut(getLocal)
     end = time.perf_counter()
     print(end - start)
     timer = end - start
-    data = [transcript, timer]
+    data = [transcript, timer, exec[0], exec[1], exec[2], exec[3]]
+    print(data)
     return data
