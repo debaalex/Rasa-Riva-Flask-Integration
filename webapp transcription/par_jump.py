@@ -124,7 +124,8 @@ def runTranscript(path):
     SetDocker(c)
     putFile(path, putremoteFile, c)
     idD = getDockerId(c)
-    command = "riva_asr_client --audio_file /riva/{} --output_filename=/riva/resp.txt".format(basename)
+    command = "riva_asr_client --audio_file /riva/{} --output_filename=/riva/resp.txt".format(basename) 
+    #for the streaming transcription the command is riva_streaming_asr_client
     exec = execDockCom(c, command, idD)
     getFile(getRemote, getLocal, c, basename)
     transcript = handleOut(getLocal)
